@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Words Frequency Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #form-container {
+            max-width: 500px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        #results {
+            margin-top: 30px;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div id="form-container">
+        <h1>URL Word Frequency Analyzer</h1>
+        <input type="text" id="url" placeholder="Enter URL" style="width: 80%; padding: 8px;">
+        <button onclick="analyzeUrl()">Analyze</button>
+    </div>
+    <div id="results">
+        <h2>Top Words Frequency</h2>
+        <table id="results-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Word</th>
+                    <th>Frequency</th>
+                </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function analyzeUrl() {
+            const url = document.getElementById("url").value;
+            if (!url) {
+                alert("Please enter a URL");
+                return;
+            }
+
+            const resultsTable = document.getElementById("results-table");
+            const resultsBody = document.getElementById("results-body");
+            resultsBody.innerHTML = "";  // Clear any previous results
+            resultsTable.style.display = "none";  // Hide table until results are shown
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url, top_n: 10 })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error: " + response.statusText);
+                }
+
+                const data = await response.json();
+
+                // Populate results table
+                data.forEach(item => {
+                    const row = document.createElement("tr");
+                    const wordCell = document.createElement("td");
+                    const freqCell = document.createElement("td");
+                    wordCell.textContent = item.word;
+                    freqCell.textContent = item.frequency;
+                    row.appendChild(wordCell);
+                    row.appendChild(freqCell);
+                    resultsBody.appendChild(row);
+                });
+
+                resultsTable.style.display = "table";  // Show table with results
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Failed to analyze URL. Please try again.");
+            }
+        }
+    </script>
+</body>
+</html>
